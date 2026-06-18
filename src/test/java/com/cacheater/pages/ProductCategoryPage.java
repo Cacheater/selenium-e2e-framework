@@ -3,6 +3,7 @@ package com.cacheater.pages;
 import org.openqa.selenium.By;
 import org.openqa.selenium.WebDriver;
 import org.openqa.selenium.WebElement;
+import org.openqa.selenium.support.ui.ExpectedConditions;
 import org.openqa.selenium.support.ui.WebDriverWait;
 
 import java.time.Duration;
@@ -30,9 +31,11 @@ public class ProductCategoryPage {
         this.wait = new WebDriverWait(driver, Duration.ofSeconds(15));
     }
 
-    /** Navigate to a category by its path ID (e.g. 36 = Makeup). */
+    /** Navigate to a category by its path ID (e.g. 43 = Skincare). */
     public ProductCategoryPage navigateTo(int categoryPath) {
         driver.get("https://automationteststore.com/index.php?rt=product/category&path=" + categoryPath);
+        // Wait until at least one add-to-cart button is present; handles CI where JS renders after readyState=complete
+        wait.until(ExpectedConditions.presenceOfElementLocated(By.cssSelector("a.productcart")));
         return this;
     }
 

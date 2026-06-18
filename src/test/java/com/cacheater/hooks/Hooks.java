@@ -28,10 +28,17 @@ public class Hooks {
         if (Boolean.parseBoolean(System.getProperty("headless", "true"))) {
             options.addArguments("--headless=new");
         }
-        options.addArguments("--window-size=1920,1080", "--no-sandbox", "--disable-dev-shm-usage");
+        options.addArguments(
+            "--window-size=1920,1080",
+            "--no-sandbox",
+            "--disable-dev-shm-usage",
+            // Override the "HeadlessChrome" UA that some sites detect and block
+            "--user-agent=Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/149.0.0.0 Safari/537.36",
+            "--disable-blink-features=AutomationControlled"
+        );
 
         WebDriver driver = new ChromeDriver(options);
-        driver.manage().timeouts().implicitlyWait(Duration.ofSeconds(10));
+        driver.manage().timeouts().implicitlyWait(Duration.ofSeconds(15));
         context.setDriver(driver);
     }
 

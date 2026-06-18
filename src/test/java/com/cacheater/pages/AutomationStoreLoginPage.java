@@ -26,6 +26,8 @@ public class AutomationStoreLoginPage {
     public AutomationStoreLoginPage(WebDriver driver) {
         this.driver = driver;
         driver.get("https://automationteststore.com/index.php?rt=account/login");
+        new WebDriverWait(driver, Duration.ofSeconds(30))
+                .until(ExpectedConditions.visibilityOfElementLocated(loginNameInput));
     }
 
     public AccountPage loginAs(String loginName, String password) {
