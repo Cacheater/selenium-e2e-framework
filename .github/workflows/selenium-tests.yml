@@ -56,6 +56,13 @@ jobs:
           keep_reports: 20
           gh_pages: allure-history-cache
 
+      # Copy Cucumber HTML into the Pages tree so it's browsable at /cucumber/cucumber.html
+      - name: Include Cucumber report in Pages deployment
+        if: always()
+        run: |
+          mkdir -p allure-history/cucumber
+          [ -d target/cucumber-reports ] && cp -r target/cucumber-reports/. allure-history/cucumber/ || true
+
       # Persist the new report so the NEXT run can use it as history.
       - name: Save Allure history to cache
         if: always()
@@ -77,13 +84,6 @@ jobs:
         with:
           name: allure-results
           path: target/allure-results/
-
-      - name: Upload Cucumber HTML report artifact
-        if: always()
-        uses: actions/upload-artifact@v4
-        with:
-          name: cucumber-report
-          path: target/cucumber-reports/
 
   deploy:
     environment:
