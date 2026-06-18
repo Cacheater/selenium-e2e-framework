@@ -8,7 +8,14 @@ on:
   workflow_dispatch:
 
 permissions:
-  contents: write
+  contents: read
+  pages: write
+  id-token: write
+
+# Only one Pages deployment at a time; new pushes wait rather than cancel.
+concurrency:
+  group: pages
+  cancel-in-progress: false
 
 jobs:
   test:
@@ -18,14 +25,15 @@ jobs:
       - name: Checkout source code
         uses: actions/checkout@v4
 
-      # Pull previously published Allure report from gh-pages for trend history.
-      # continue-on-error: true handles the first run when the branch doesn't exist yet.
-      - name: Checkout gh-pages for Allure history
-        uses: actions/checkout@v4
+      # Restore the previous Allure report so trend charts carry over.
+      # On the very first run there is no cache, so this step is a no-op.
+      - name: Restore Allure history from cache
+        uses: actions/cache/restore@v4
         with:
-          ref: gh-pages
-          path: gh-pages
-        continue-on-error: true
+          path: allure-history-cache
+          key: allure-history-${{ github.run_id }}
+          restore-keys: |
+            allure-history-
 
       - name: Set up JDK 21
         uses: actions/setup-java@v4
@@ -37,7 +45,7 @@ jobs:
       - name: Run BDD suite (headless Chrome)
         run: mvn -B test -Dheadless=true
 
-      # Runs even on test failure so the report captures the failed scenario + screenshot.
+      # Runs even when tests fail so the report captures failed scenarios + screenshots.
       - name: Generate Allure report with history
         if: always()
         uses: simple-elf/allure-report-action@master
@@ -46,15 +54,22 @@ jobs:
           allure_report: allure-report
           allure_history: allure-history
           keep_reports: 20
-          gh_pages: gh-pages
+          gh_pages: allure-history-cache
 
-      - name: Publish Allure report to GitHub Pages
+      # Persist the new report so the NEXT run can use it as history.
+      - name: Save Allure history to cache
         if: always()
-        uses: peaceiris/actions-gh-pages@v3
+        uses: actions/cache/save@v4
         with:
-          github_token: ${{ secrets.GITHUB_TOKEN }}
-          publish_branch: gh-pages
-          publish_dir: allure-history
+          path: allure-history
+          key: allure-history-${{ github.run_id }}
+
+      # Package the report for GitHub Pages deployment (picked up by the deploy job).
+      - name: Upload Pages artifact
+        if: always()
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: allure-history
 
       - name: Upload Allure results artifact
         if: always()
@@ -69,3 +84,16 @@ jobs:
         with:
           name: cucumber-report
           path: target/cucumber-reports/
+
+  deploy:
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    runs-on: ubuntu-latest
+    needs: test
+    # Deploy on every push to main, even when tests fail, so the report is always current.
+    if: always() && github.ref == 'refs/heads/main'
+    steps:
+      - name: Deploy Allure report to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v4

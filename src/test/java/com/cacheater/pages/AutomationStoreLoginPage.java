@@ -39,13 +39,17 @@ public class AutomationStoreLoginPage {
         return new AccountPage(driver);
     }
 
-    /** Submits the form and stays on the login page (used for invalid-credential tests). */
+    /** Submits the form and waits for an error alert to appear (used for invalid-credential tests). */
     public AutomationStoreLoginPage loginExpectingFailure(String loginName, String password) {
         driver.findElement(loginNameInput).clear();
         driver.findElement(loginNameInput).sendKeys(loginName);
         driver.findElement(passwordInput).clear();
         driver.findElement(passwordInput).sendKeys(password);
         driver.findElement(loginButton).click();
+        new WebDriverWait(driver, Duration.ofSeconds(10))
+                .until(ExpectedConditions.or(
+                        ExpectedConditions.visibilityOfElementLocated(errorAlert),
+                        ExpectedConditions.urlContains("rt=account/account")));
         return this;
     }
 
