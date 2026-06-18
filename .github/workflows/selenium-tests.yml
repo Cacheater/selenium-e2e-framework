@@ -1,4 +1,4 @@
-name: Selenium E2E Tests
+name: Selenium E2E Tests + Allure Report
 
 on:
   push:
@@ -7,11 +7,25 @@ on:
     branches: [ main ]
   workflow_dispatch:
 
+permissions:
+  contents: write
+
 jobs:
   test:
     runs-on: ubuntu-latest
+
     steps:
-      - uses: actions/checkout@v4
+      - name: Checkout source code
+        uses: actions/checkout@v4
+
+      # Pull previously published Allure report from gh-pages for trend history.
+      # continue-on-error: true handles the first run when the branch doesn't exist yet.
+      - name: Checkout gh-pages for Allure history
+        uses: actions/checkout@v4
+        with:
+          ref: gh-pages
+          path: gh-pages
+        continue-on-error: true
 
       - name: Set up JDK 21
         uses: actions/setup-java@v4
@@ -20,12 +34,38 @@ jobs:
           java-version: '21'
           cache: maven
 
-      - name: Run E2E suite (headless Chrome)
+      - name: Run BDD suite (headless Chrome)
         run: mvn -B test -Dheadless=true
 
-      - name: Upload TestNG reports
+      # Runs even on test failure so the report captures the failed scenario + screenshot.
+      - name: Generate Allure report with history
+        if: always()
+        uses: simple-elf/allure-report-action@master
+        with:
+          allure_results: target/allure-results
+          allure_report: allure-report
+          allure_history: allure-history
+          keep_reports: 20
+          gh_pages: gh-pages
+
+      - name: Publish Allure report to GitHub Pages
+        if: always()
+        uses: peaceiris/actions-gh-pages@v3
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          publish_branch: gh-pages
+          publish_dir: allure-history
+
+      - name: Upload Allure results artifact
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: testng-report
-          path: target/surefire-reports/
+          name: allure-results
+          path: target/allure-results/
+
+      - name: Upload Cucumber HTML report artifact
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: cucumber-report
+          path: target/cucumber-reports/
