@@ -1,0 +1,53 @@
+package com.cacheater.pages;
+
+import org.openqa.selenium.By;
+import org.openqa.selenium.WebDriver;
+
+/**
+ * Page Object for the Automation Test Store login screen.
+ * URL: /index.php?rt=account/login
+ *
+ * The site runs OpenCart; form fields use the standard OpenCart IDs
+ * (loginFrm_loginname / loginFrm_password).
+ */
+public class AutomationStoreLoginPage {
+
+    private final WebDriver driver;
+
+    private final By loginNameInput = By.id("loginFrm_loginname");
+    private final By passwordInput  = By.id("loginFrm_password");
+    private final By loginButton    = By.cssSelector("#loginFrm button[type='submit']");
+    private final By errorAlert     = By.cssSelector(".alert-danger, .alert.alert-error");
+
+    public AutomationStoreLoginPage(WebDriver driver) {
+        this.driver = driver;
+        driver.get("https://automationteststore.com/index.php?rt=account/login");
+    }
+
+    public AccountPage loginAs(String loginName, String password) {
+        driver.findElement(loginNameInput).clear();
+        driver.findElement(loginNameInput).sendKeys(loginName);
+        driver.findElement(passwordInput).clear();
+        driver.findElement(passwordInput).sendKeys(password);
+        driver.findElement(loginButton).click();
+        return new AccountPage(driver);
+    }
+
+    /** Submits the form and stays on the login page (used for invalid-credential tests). */
+    public AutomationStoreLoginPage loginExpectingFailure(String loginName, String password) {
+        driver.findElement(loginNameInput).clear();
+        driver.findElement(loginNameInput).sendKeys(loginName);
+        driver.findElement(passwordInput).clear();
+        driver.findElement(passwordInput).sendKeys(password);
+        driver.findElement(loginButton).click();
+        return this;
+    }
+
+    public boolean hasErrorMessage() {
+        return !driver.findElements(errorAlert).isEmpty();
+    }
+
+    public String getErrorMessage() {
+        return driver.findElement(errorAlert).getText();
+    }
+}

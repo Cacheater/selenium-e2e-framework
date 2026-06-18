@@ -3,20 +3,52 @@ target/
 pom.xml.tag
 pom.xml.releaseBackup
 pom.xml.versionsBackup
+release.properties
 
-# IDEs
+# IDEs — IntelliJ
 .idea/
 *.iml
+out/
+
+# IDEs — VS Code
 .vscode/
+
+# IDEs — Eclipse
 .settings/
 .project
 .classpath
+bin/
+
+# IDEs — NetBeans
+nb-configuration.xml
+nbactions.xml
 
 # Test artifacts
 /test-output/
 screenshots/
+allure-results/
+allure-report/
 *.log
+hs_err_pid*.log
 
-# OS
+# Browser drivers (downloaded locally; Selenium Manager handles this automatically)
+chromedriver
+chromedriver.exe
+geckodriver
+geckodriver.exe
+msedgedriver
+msedgedriver.exe
+
+# Environment / secrets
+.env
+.env.local
+
+# OS — macOS
 .DS_Store
+
+# OS — Windows
 Thumbs.db
+Desktop.ini
+
+# OS — Linux
+*~
