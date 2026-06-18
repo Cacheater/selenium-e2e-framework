@@ -2,6 +2,10 @@ package com.cacheater.pages;
 
 import org.openqa.selenium.By;
 import org.openqa.selenium.WebDriver;
+import org.openqa.selenium.support.ui.ExpectedConditions;
+import org.openqa.selenium.support.ui.WebDriverWait;
+
+import java.time.Duration;
 
 /**
  * Page Object for the Automation Test Store login screen.
@@ -30,6 +34,8 @@ public class AutomationStoreLoginPage {
         driver.findElement(passwordInput).clear();
         driver.findElement(passwordInput).sendKeys(password);
         driver.findElement(loginButton).click();
+        new WebDriverWait(driver, Duration.ofSeconds(15))
+                .until(ExpectedConditions.urlContains("rt=account/account"));
         return new AccountPage(driver);
     }
 
